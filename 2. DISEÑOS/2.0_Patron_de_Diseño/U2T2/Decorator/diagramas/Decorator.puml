@@ -1,0 +1,33 @@
+@startuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam classBackgroundColor #F5F7F9
+skinparam classBorderColor #333333
+skinparam ArrowColor #333333
+hide empty members
+title Decorator en el CRUD de estudiantes
+interface OperacionesEstudiante {
+ +agregarEstudiante(id, nombre, edad)
+ +actualizarEstudiante(id, nombre, edad)
+ +eliminarEstudiante(id)
+ +listarTodos()
+}
+class ControlEstudiante
+abstract class EstudianteDecorator {
+ #envuelto: OperacionesEstudiante
+}
+class AuditoriaDecorator {
+ -eventos: List<String>
+ +getEventos()
+ +verAuditoria()
+}
+class RepositorioEstudiante
+OperacionesEstudiante <|.. ControlEstudiante
+OperacionesEstudiante <|.. EstudianteDecorator
+EstudianteDecorator <|-- AuditoriaDecorator
+EstudianteDecorator o--> "1" OperacionesEstudiante : envuelto
+ControlEstudiante --> RepositorioEstudiante
+@enduml
