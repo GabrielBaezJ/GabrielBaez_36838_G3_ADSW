@@ -1,0 +1,117 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Diagrama de Arquitectura en Capas con Patrón FACADE\nCRUD Estudiante
+
+package "Capa de Presentacion" {
+    class CRUDEstudiantesGUI {
+        - fachada: EstudianteFachada
+        - txtId: JTextField
+        - txtNombre: JTextField
+        - txtEdad: JTextField
+        - tablaEstudiantes: JTable
+        + onAgregar(): void
+        + onActualizar(): void
+        + onEliminar(): void
+        + onBuscar(): void
+        + actualizarLista(): void
+    }
+
+    class PruebaCrudEstudiantes {
+        + {static} main(args: String[]): void
+    }
+
+    class EstudianteVista {
+        + mostrarMenu(): void
+        + leerTexto(mensaje: String): String
+        + leerEntero(mensaje: String): int
+        + mostrarMensaje(mensaje: String): void
+        + mostrarEstudiante(e: Estudiante): void
+        + listarEstudiantes(estudiantes: List<Estudiante>): void
+    }
+}
+
+package "Capa Fachada (Patron Facade)" {
+    class EstudianteFachada <<Facade>> {
+        - repositorio: EstudianteRepositorio
+        - validador: ValidadorEstudiante
+        - reglaAcademica: ReglaAcademicaServicio
+        + registrar(id: String, nombre: String, edad: int): ResultadoOperacion
+        + actualizar(id: String, nombre: String, edad: int): ResultadoOperacion
+        + eliminar(id: String): ResultadoOperacion
+        + listarTodos(): List<Estudiante>
+        + buscarPorId(id: String): Estudiante
+        + validarDatos(id: String, nombre: String, edad: int): void
+    }
+}
+
+package "Capa de Logica de Negocio (Subsistemas)" {
+    class ValidadorEstudiante {
+        + validarId(id: String): void
+        + validarNombre(nombre: String): void
+        + validarEdad(edad: int): void
+        + validarDatos(id: String, nombre: String, edad: int): void
+    }
+
+    class ReglaAcademicaServicio {
+        - {static} EDAD_MINIMA_ELIMINACION: int = 18
+        + puedeEliminar(estudiante: Estudiante): boolean
+        + obtenerMensajeRestriccion(estudiante: Estudiante): String
+    }
+
+    class ResultadoOperacion {
+        - exitoso: boolean
+        - mensaje: String
+        - estudiante: Estudiante
+        + isExitoso(): boolean
+        + getMensaje(): String
+        + getEstudiante(): Estudiante
+    }
+}
+
+package "Capa de Datos (Persistencia)" {
+    class EstudianteRepositorio {
+        - estudiantes: List<Estudiante>
+        + guardar(estudiante: Estudiante): void
+        + listar(): List<Estudiante>
+        + listarTodos(): List<Estudiante>
+        + buscarPorId(id: String): Estudiante
+        + actualizar(id: String, nombre: String, edad: int): boolean
+        + eliminar(id: String): boolean
+    }
+}
+
+package "Capa de Modelo" {
+    class Estudiante {
+        - id: String
+        - nombre: String
+        - edad: int
+        + getId(): String
+        + setId(id: String): void
+        + getNombre(): String
+        + setNombre(nombre: String): void
+        + getEdad(): int
+        + setEdad(edad: int): void
+        + toString(): String
+    }
+}
+
+' Relaciones entre la Capa de Presentacion y la Fachada
+CRUDEstudiantesGUI --> EstudianteFachada : usa
+PruebaCrudEstudiantes --> EstudianteFachada : usa
+EstudianteVista <.. EstudianteFachada : recibe datos
+
+' La Fachada orquesta los subsistemas
+EstudianteFachada --> ValidadorEstudiante : delega validaciones (RF-05)
+EstudianteFachada --> ReglaAcademicaServicio : consulta politica academica (RF-03)
+EstudianteFachada --> EstudianteRepositorio : persiste y consulta datos
+EstudianteFachada ..> ResultadoOperacion : genera y retorna
+
+' Relaciones de datos y modelo
+EstudianteRepositorio o--> Estudiante : contiene
+ReglaAcademicaServicio ..> Estudiante : evalua edad
+ResultadoOperacion o--> Estudiante : referencia
+
+@enduml

@@ -1,0 +1,97 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Diagrama de Arquitectura en Tres Capas con Patrón FACADE\nCRUD Estudiante
+
+package "Capa de Presentacion" {
+    class CRUDEstudiantesGUI {
+        - fachada: EstudianteFachada
+        + onAgregar(): void
+        + onActualizar(): void
+        + onEliminar(): void
+        + onBuscar(): void
+        + actualizarLista(): void
+    }
+
+    class PruebaCrudEstudiantes {
+        + {static} main(args: String[]): void
+    }
+
+    class EstudianteVista {
+        + mostrarMenu(): void
+        + leerTexto(mensaje: String): String
+        + leerEntero(mensaje: String): int
+        + mostrarMensaje(mensaje: String): void
+        + listarEstudiantes(estudiantes: List<Estudiante>): void
+    }
+}
+
+package "Capa Fachada (Patron Facade)" {
+    class EstudianteFachada <<Facade>> {
+        - repositorio: EstudianteRepositorio
+        - validador: ValidadorEstudiante
+        - reglaAcademica: ReglaAcademicaServicio
+        + registrar(id: String, nombre: String, edad: int): ResultadoOperacion
+        + actualizar(id: String, nombre: String, edad: int): ResultadoOperacion
+        + eliminar(id: String): ResultadoOperacion
+        + listarTodos(): List<Estudiante>
+        + buscarPorId(id: String): Estudiante
+        + validarDatos(id: String, nombre: String, edad: int): void
+    }
+}
+
+package "Capa de Logica de Negocio (Subsistemas)" {
+    class ValidadorEstudiante {
+        + validarDatos(id: String, nombre: String, edad: int): void
+    }
+
+    class ReglaAcademicaServicio {
+        - {static} EDAD_MINIMA_ELIMINACION: int = 18
+        + puedeEliminar(estudiante: Estudiante): boolean
+        + obtenerMensajeRestriccion(estudiante: Estudiante): String
+    }
+
+    class ResultadoOperacion {
+        - exitoso: boolean
+        - mensaje: String
+        - estudiante: Estudiante
+    }
+}
+
+package "Capa de Datos (Persistencia)" {
+    class EstudianteRepositorio {
+        - estudiantes: List<Estudiante>
+        + guardar(estudiante: Estudiante): void
+        + listar(): List<Estudiante>
+        + listarTodos(): List<Estudiante>
+        + buscarPorId(id: String): Estudiante
+        + actualizar(id: String, nombre: String, edad: int): boolean
+        + eliminar(id: String): boolean
+    }
+}
+
+package "Capa de Modelo" {
+    class Estudiante {
+        - id: String
+        - nombre: String
+        - edad: int
+    }
+}
+
+' Relaciones
+CRUDEstudiantesGUI --> EstudianteFachada
+PruebaCrudEstudiantes --> EstudianteFachada
+EstudianteVista <.. EstudianteFachada
+
+EstudianteFachada --> ValidadorEstudiante
+EstudianteFachada --> ReglaAcademicaServicio
+EstudianteFachada --> EstudianteRepositorio
+EstudianteFachada ..> ResultadoOperacion
+
+EstudianteRepositorio o--> Estudiante
+ReglaAcademicaServicio ..> Estudiante
+ResultadoOperacion o--> Estudiante
+
+@enduml
