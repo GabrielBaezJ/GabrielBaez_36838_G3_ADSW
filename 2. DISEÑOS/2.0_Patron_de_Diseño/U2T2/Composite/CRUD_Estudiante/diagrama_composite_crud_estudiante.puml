@@ -1,0 +1,128 @@
+@startuml diagrama_composite_crud_estudiante
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam roundcorner 10
+skinparam shadowing true
+
+package "componente" {
+    abstract class EstudianteComponent {
+        + {abstract} getId(): String
+        + {abstract} getNombre(): String
+        + {abstract} getEdad(): int
+        + {abstract} imprimir(): void
+        + {abstract} mostrarDetalles(indent: String): String
+        + {abstract} contarEstudiantes(): int
+        + {abstract} obtenerPromedioEdad(): double
+        + agregar(c: EstudianteComponent): void
+        + eliminar(c: EstudianteComponent): void
+        + obtenerHijo(i: int): EstudianteComponent
+        + obtenerHijos(): List<EstudianteComponent>
+        + esCompuesto(): boolean
+    }
+}
+
+package "hoja" {
+    class Estudiante {
+        - id: String
+        - nombre: String
+        - edad: int
+        + Estudiante(id: String, nombre: String, edad: int)
+        + getId(): String
+        + setId(id: String): void
+        + getNombre(): String
+        + setNombre(n: String): void
+        + getEdad(): int
+        + setEdad(e: int): void
+        + imprimir(): void
+        + mostrarDetalles(indent: String): String
+        + contarEstudiantes(): int
+        + obtenerPromedioEdad(): double
+    }
+}
+
+package "compuesto" {
+    class GrupoEstudiantes {
+        - id: String
+        - nombreGrupo: String
+        - elementos: List<EstudianteComponent>
+        + GrupoEstudiantes(id: String, nombre: String)
+        + getId(): String
+        + getNombre(): String
+        + getEdad(): int
+        + agregar(c: EstudianteComponent): void
+        + eliminar(c: EstudianteComponent): void
+        + obtenerHijo(i: int): EstudianteComponent
+        + obtenerHijos(): List<EstudianteComponent>
+        + esCompuesto(): boolean
+        + contarEstudiantes(): int
+        + obtenerPromedioEdad(): double
+        + imprimir(): void
+        + mostrarDetalles(indent: String): String
+    }
+}
+
+package "datos" {
+    class EstudianteRepositorio {
+        - almacenamiento: Map<String, EstudianteComponent>
+        + guardar(c: EstudianteComponent): boolean
+        + buscarPorId(id: String): EstudianteComponent
+        + eliminar(id: String): boolean
+        + listarRaiz(): List<EstudianteComponent>
+        + listarTodosPlano(): List<EstudianteComponent>
+        + existe(id: String): boolean
+    }
+}
+
+package "logica" {
+    class EstudianteService {
+        - repositorio: EstudianteRepositorio
+        + registrarEstudiante(id: String, nombre: String, edad: int): ResultadoOperacion
+        + registrarGrupo(id: String, nombre: String): ResultadoOperacion
+        + agregarAGrupo(idGrupo: String, idElem: String): ResultadoOperacion
+        + actualizarEstudiante(id: String, nombre: String, edad: int): ResultadoOperacion
+        + eliminar(id: String): ResultadoOperacion
+        + consultarPorId(id: String): EstudianteComponent
+        + listarRaiz(): List<EstudianteComponent>
+        + listarTodos(): List<EstudianteComponent>
+        + obtenerArbolCompleto(): String
+    }
+
+    class ResultadoOperacion {
+        - exitoso: boolean
+        - mensaje: String
+        + {static} exito(msg: String): ResultadoOperacion
+        + {static} error(msg: String): ResultadoOperacion
+        + isExitoso(): boolean
+        + getMensaje(): String
+    }
+}
+
+package "presentacion" {
+    class CRUDEstudiantesGUI {
+        - servicio: EstudianteService
+        - txtId: JTextField
+        - txtNombre: JTextField
+        - txtEdad: JTextField
+        - tablaComponentes: JTable
+        - arbolComponentes: JTree
+        + main(args: String[]): void
+    }
+
+    class PruebaCrudEstudiantes {
+        + {static} main(args: String[]): void
+    }
+}
+
+EstudianteComponent <|-- Estudiante : "Hoja (Leaf)"
+EstudianteComponent <|-- GrupoEstudiantes : "Compuesto (Composite)"
+GrupoEstudiantes o--> "0..*" EstudianteComponent : "elementos (hijos)"
+
+EstudianteService --> EstudianteRepositorio : usa
+EstudianteService ..> EstudianteComponent : gestiona
+EstudianteService ..> ResultadoOperacion : retorna
+EstudianteRepositorio o--> "0..*" EstudianteComponent : almacena
+
+CRUDEstudiantesGUI --> EstudianteService : invoca
+PruebaCrudEstudiantes --> EstudianteService : ejecuta pruebas
+
+@enduml
